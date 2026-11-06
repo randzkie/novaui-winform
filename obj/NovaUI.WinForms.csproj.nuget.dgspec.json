@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "restore": {
+    "E:\\Projects\\winforms-ui-project1\\winforms-ui-project\\NovaUI.WinForms\\NovaUI.WinForms.csproj": {}
+  },
+  "projects": {
+    "E:\\Projects\\winforms-ui-project1\\winforms-ui-project\\NovaUI.WinForms\\NovaUI.WinForms.csproj": {
+      "version": "1.1.0",
+      "restore": {
+        "projectUniqueName": "E:\\Projects\\winforms-ui-project1\\winforms-ui-project\\NovaUI.WinForms\\NovaUI.WinForms.csproj",
+        "projectName": "NovaUI.WinForms",
+        "projectPath": "E:\\Projects\\winforms-ui-project1\\winforms-ui-project\\NovaUI.WinForms\\NovaUI.WinForms.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "E:\\Projects\\winforms-ui-project1\\winforms-ui-project\\NovaUI.WinForms\\obj\\",
+        "projectStyle": "PackageReference",
+        "crossTargeting": true,
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 20.1.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net472"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\DevExpress 20.1\\Components\\System\\Components\\Packages": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "D:\\rands\\Packages": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net472": {
+            "targetAlias": "net472",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net472": {
+          "targetAlias": "net472",
+          "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.416\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

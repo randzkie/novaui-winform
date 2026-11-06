@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>NovaUI.WinForms</RootNamespace>
+    <AssemblyName>NovaUI.WinForms</AssemblyName>
+    <Version>1.1.0</Version>
+    <Authors>NovaUI</Authors>
+    <Product>NovaUI.WinForms</Product>
+    <Description>Clean-room GDI+ styled WinForms controls (Button, Panel, TextBox, Label, ComboBox, ProgressBar, HtmlViewer) for .NET Framework 4.7.2+ and .NET 8. Language level pinned to C# 7.3 so both targets compile from identical sources.</Description>
+    <PackageTags>winforms;controls;ui;gdi;cleanroom</PackageTags>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

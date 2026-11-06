@@ -1,0 +1,9 @@
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\bin\Debug\net472\NovaUI.WinForms.dll
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\bin\Debug\net472\NovaUI.WinForms.pdb
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\obj\Debug\net472\NovaUI.WinForms.csproj.AssemblyReference.cache
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\obj\Debug\net472\NovaUI.WinForms.GeneratedMSBuildEditorConfig.editorconfig
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\obj\Debug\net472\NovaUI.WinForms.AssemblyInfoInputs.cache
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\obj\Debug\net472\NovaUI.WinForms.AssemblyInfo.cs
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\obj\Debug\net472\NovaUI.WinForms.csproj.CoreCompileInputs.cache
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\obj\Debug\net472\NovaUI.WinForms.dll
+E:\Projects\winforms-ui-project1\winforms-ui-project\NovaUI.WinForms\obj\Debug\net472\NovaUI.WinForms.pdb
