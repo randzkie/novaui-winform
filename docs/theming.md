@@ -1,111 +1,101 @@
-# Theming with NovaTheme
+---
+title: Theming
+description: The NovaTheme palette, dark mode, custom accents and per-control overrides.
+---
 
-Every NovaUI control reads its default colors from the static `NovaTheme` class. Change a value there and the whole application follows; change a control's own property to override just that one control.
+# Theming
 
-## The palette
+All Nova controls read their colors from the static `NovaTheme` palette, so the whole
+app changes look with one call. The current palette:
 
-| Property | Default (light) | Used for |
-| --- | --- | --- |
-| `Accent` | `#5865F2` | Buttons, focus borders, progress fill, links |
-| `AccentHover` | `#4752C4` | Hover states |
-| `BackColor` | `White` | Window / control background |
-| `SurfaceColor` | `#F6F7F9` | Cards, panels, progress track |
-| `TextColor` | `#171A21` | Primary text |
-| `MutedColor` | `#7A808C` | Secondary text, arrows |
-| `BorderColor` | `#D6DBE4` | 1px borders |
-| `SuccessColor` | `#35B273` | Positive states |
-| `DangerColor` | `#EB455E` | Destructive actions |
-| `WarningColor` | `#F0A62C` | Warning states |
+| Token | Light | Dark | Used for |
+| --- | --- | --- | --- |
+| `Background` | `#F3F5F9` | `#10141C` | form / page background |
+| `Surface` | `#FFFFFF` | `#171C26` | cards, inputs, popups |
+| `Text` | `#1B2432` | `#E8EBF2` | primary text |
+| `TextMuted` | `#6B7280` | `#8A93A6` | placeholders, hints |
+| `Border` | `#D7DCE5` | `#262D3B` | outlines, dividers |
+| `Accent` | `#4F6BFF` | `#6C86FF` | buttons, progress, focus ring |
+| `AccentHover` | `#3D57E0` | `#8598FF` | pressed / hover accent |
+| `Success` | `#2FA36B` | `#3DD68C` | positive states |
+| `Danger` | `#E5484D` | `#FF6369` | destructive buttons |
 
-## Switch to dark mode and back
-
-**C#**
+## Switching theme (C#)
 
 ```csharp
-private void ToggleTheme()
+// at startup (light is the default)
+NovaTheme.ApplyLight();
+
+// when the user toggles dark mode
+darkModeCheckbox.CheckedChanged += (s, e) =>
 {
-    bool isLight = NovaTheme.BackColor.R >= 128;
-
-    if (isLight)
-        NovaTheme.ApplyDark();
-    else
-        NovaTheme.ApplyLight();
-
-    // Existing controls keep their assigned colors, so re-apply the palette
-    // to plain surfaces (forms, tab pages). NovaUI controls pick the theme
-    // up the next time they are created; see the note below.
-    BackColor = NovaTheme.BackColor;
-}
+    if (darkModeCheckbox.Checked) NovaTheme.ApplyDark();
+    else NovaTheme.ApplyLight();
+    // every live Nova control repaints automatically - no extra code
+};
 ```
 
-**Visual Basic**
+## Switching theme (VB.NET)
 
 ```vb
-Private Sub ToggleTheme()
-    Dim isLight As Boolean = NovaTheme.BackColor.R >= 128
-
-    If isLight Then
-        NovaTheme.ApplyDark()
-    Else
-        NovaTheme.ApplyLight()
-    End If
-
-    BackColor = NovaTheme.BackColor
-End Sub
+AddHandler darkModeCheckbox.CheckedChanged,
+    Sub(s, e)
+        If darkModeCheckbox.Checked Then
+            NovaTheme.ApplyDark()
+        Else
+            NovaTheme.ApplyLight()
+        End If
+    End Sub
 ```
 
-## Custom accent (brand colors)
-
-**C#**
+## Custom accents (C#)
 
 ```csharp
-NovaTheme.Accent = Color.FromArgb(0, 122, 204);      // VS blue
-NovaTheme.AccentHover = Color.FromArgb(0, 100, 175);
-NovaTheme.SurfaceColor = Color.FromArgb(245, 245, 245);
-
-// New controls pick these up automatically:
-var saveButton = new NovaButton();   // will paint in the new accent
+NovaTheme.Accent = Color.FromArgb(0, 150, 136);      // teal brand color
+NovaTheme.AccentHover = Color.FromArgb(0, 121, 107);
+NovaTheme.RaiseThemeChanged();                        // repaint everything
 ```
 
-**Visual Basic**
+## Custom accents (VB.NET)
 
 ```vb
-NovaTheme.Accent = Color.FromArgb(0, 122, 204)      ' VS blue
-NovaTheme.AccentHover = Color.FromArgb(0, 100, 175)
-NovaTheme.SurfaceColor = Color.FromArgb(245, 245, 245)
-
-Dim saveButton As New NovaButton()   ' will paint in the new accent
+NovaTheme.Accent = Drawing.Color.FromArgb(0, 150, 136)
+NovaTheme.AccentHover = Drawing.Color.FromArgb(0, 121, 107)
+NovaTheme.RaiseThemeChanged()
 ```
 
 ## Per-control overrides
 
-Any control can opt out of the shared palette by setting its own colors - useful for danger buttons or status bars:
+Any control can opt out of the theme:
 
-**C#**
+- `NovaButton.Accent` - a fixed color for one button
+- `NovaPanel.CardColor` / `BorderColor`
+- `NovaProgressBar.BarColor`
+- `NovaLabel.DotColor`
+- `NovaHtmlViewer.LinkColor` / `LinkHoverColor`
+
+An empty (`Color.Empty`) value means "follow the theme".
+
+> [!WARNING]
+> `NovaTheme` colors are process-wide. Per-control overrides are the right tool for
+> one-off colors; changing the palette itself affects every open form.
+
+## Forms and layouts that match the theme
 
 ```csharp
-var deleteButton = new NovaButton();
-deleteButton.Text = "Delete";
-deleteButton.AccentColor = NovaTheme.DangerColor;
-deleteButton.HoverColor = Color.FromArgb(200, 50, 70);
+public partial class ShellForm : Form
+{
+    public ShellForm()
+    {
+        InitializeComponent();
+        BackColor = NovaTheme.Background;   // form follows the palette
+    }
 
-var statusBar = new NovaPanel();
-statusBar.FillColor = Color.FromArgb(32, 34, 39);
+    void ToggleTheme()
+    {
+        if (BackColor == NovaTheme.Background) NovaTheme.ApplyDark();
+        else NovaTheme.ApplyLight();
+        BackColor = NovaTheme.Background;
+    }
+}
 ```
-
-**Visual Basic**
-
-```vb
-Dim deleteButton As New NovaButton()
-deleteButton.Text = "Delete"
-deleteButton.AccentColor = NovaTheme.DangerColor
-deleteButton.HoverColor = Color.FromArgb(200, 50, 70)
-
-Dim statusBar As New NovaPanel()
-statusBar.FillColor = Color.FromArgb(32, 34, 39)
-```
-
-## Tips
-
-- `NovaTheme` values are applied when a control is **constructed**. If you change the theme at runtime and want already-created controls to follow, either recreate them or set their color properties in a loop.
-- Keep one place (e.g. `AppTheme.Apply()` method) that configures `NovaTheme` at startup so the palette is predictable.

@@ -1,47 +1,54 @@
-# NovaUI.WinForms Documentation
+---
+title: Home
+description: Clean-room WinForms control suite — custom-drawn controls with dark/light theming and an HTML viewer with parameter injection.
+---
 
-Welcome to the **NovaUI.WinForms** documentation - the complete guide to every control in the library, with working examples in **C#** and **Visual Basic .NET**.
+![NovaUI.WinForms banner](assets/nova-banner.svg)
 
-NovaUI.WinForms is a small, clean-room UI library for Windows Forms. Every control is painted with plain GDI+ (no images, no third-party dependencies), ships as a single DLL, and targets **.NET Framework 4.7.2/4.8** and **.NET 8** from identical source code.
+# NovaUI.WinForms
 
-## Control catalog
+A clean-room, custom-drawn WinForms control suite. Every control paints itself with
+GDI+ (rounded corners, hover/focus states, dark & light themes) - no third-party
+dependencies, one DLL, works on **.NET Framework 4.7.2** and **.NET 8.0 (Windows)**.
 
-| Control | Base class | What it does |
-| --- | --- | --- |
-| [NovaButton](controls/nova-button.md) | `Control` | Flat rounded button with hover/press states, filled and outline styles |
-| [NovaPanel](controls/nova-panel.md) | `Panel` | Rounded card container with optional title and border |
-| [NovaTextBox](controls/nova-textbox.md) | `UserControl` | Rounded text box with placeholder text and focus accent |
-| [NovaLabel](controls/nova-label.md) | `Control` | Custom-drawn label with optional accent dot |
-| [NovaComboBox](controls/nova-combobox.md) | `ComboBox` | Flat owner-drawn dropdown with rounded border and custom rows |
-| [NovaProgressBar](controls/nova-progressbar.md) | `Control` | Rounded progress bar with marquee mode and captions |
-| [NovaHtmlViewer](controls/nova-html-viewer.md) | `UserControl` | HTML document viewer (like a PDF viewer, but for HTML) with custom links and printing |
+## Controls
 
-Supporting types: [`NovaTheme`](theming.md) (shared palette), `NovaHtmlLink`, `NovaHtmlLinkEventArgs`, `NovaLinksBarPosition`, `NovaProgressTextDisplay`.
+| Control | What it does |
+| --- | --- |
+| [NovaButton](controls/nova-button.md) | Rounded button, `Filled` / `Outline` styles, per-control accent |
+| [NovaPanel](controls/nova-panel.md) | Rounded card container with border |
+| [NovaTextBox](controls/nova-textbox.md) | Single-line rounded textbox with placeholder |
+| [NovaLabel](controls/nova-label.md) | Label with optional accent dot |
+| [NovaComboBox](controls/nova-combobox.md) | Owner-drawn dropdown with popup list |
+| [NovaProgressBar](controls/nova-progressbar.md) | Progress bar with determinate and marquee modes |
+| [NovaHtmlViewer](controls/nova-html-viewer.md) | HTML viewer (WebBrowser engine) with custom links, print support and **template parameter injection** |
 
-## Requirements
+## Highlights
 
-- Windows 7 or newer
-- .NET Framework **4.7.2** or 4.8, **or** .NET 8 with the Windows Desktop runtime
-- Visual Studio 2017+ / 2022 for designer support (optional - everything can be done in code)
+- **One shared theme engine** - call `NovaTheme.ApplyDark()` / `NovaTheme.ApplyLight()` and
+  every live control repaints instantly.
+- **HTML parameter injection** - put `{{PatientName}}` in any HTML file and fill it at
+  runtime: `viewer.Parameters["PatientName"] = "Juan"; viewer.LoadFile("form.html");`
+- **Multi-target** - ships as `net472` and `net8.0-windows` from one code base (C# 7.3).
+- **C# and VB.NET everywhere** - every page shows both languages.
 
-## Where to start
+## Start here
 
-1. [Getting started](getting-started.md) - reference the DLL and build your first window (C# and VB).
-2. [Theming](theming.md) - recolor the whole app from one place with `NovaTheme`.
-3. Jump to any control page from the catalog above.
+1. [Getting started](getting-started.md) - reference the DLL, build a first window
+2. [Theming](theming.md) - dark mode in one line
+3. [NovaHtmlViewer](controls/nova-html-viewer.md) - printable HTML forms with parameters
 
-## Sample
+## Verified builds
 
-```csharp
-var button = new NovaButton();
-button.Text = "Save changes";
-button.Location = new Point(24, 24);
-this.Controls.Add(button);
-```
+| Target | Result |
+| --- | --- |
+| net472 | 0 errors / 0 warnings - TFM `.NETFramework,Version=v4.7.2` |
+| net8.0-windows | 0 errors / 0 warnings - TFM `.NETCoreApp,Version=v8.0` |
 
-```vb
-Dim button As New NovaButton()
-button.Text = "Save changes"
-button.Location = New Point(24, 24)
-Me.Controls.Add(button)
-```
+Verified with `tools/analyze_guna.py` (dnfile metadata inspection): 17 types,
+243 methods, 72 properties per target. Pre-built DLLs live in
+`NovaUI.WinForms/dist/net472/` and `NovaUI.WinForms/dist/net8.0-windows/`.
+
+> [!TIP]
+> New to GitBook? See [the publishing guide](gitbook-publishing.md) for how this
+> documentation is structured and how to publish your own copy.

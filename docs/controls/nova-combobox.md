@@ -1,98 +1,61 @@
+---
+title: NovaComboBox
+description: Owner-drawn dropdown with a themed popup list and keyboard support.
+---
+
 # NovaComboBox
 
-A flat, rounded, owner-drawn dropdown. The closed control repaints its whole face (rounded fill, selected text, custom chevron), and the open list repaints each row with a soft hover highlight.
-
-- **Base class:** `System.Windows.Forms.ComboBox`
-- **Namespace:** `NovaUI.WinForms`
-- **Default event:** `SelectedIndexChanged`
-- **Defaults set by the constructor:** `DropDownStyle = DropDownList`, `DrawMode = OwnerDrawFixed`, `ItemHeight = 24`
-
-## Quick start (C#)
-
-```csharp
-var roleCombo = new NovaComboBox();
-roleCombo.Location = new Point(24, 92);
-roleCombo.Size = new Size(280, 34);
-roleCombo.Items.AddRange(new object[] { "Instructor", "Student", "Admin" });
-roleCombo.SelectedIndex = 0;
-roleCombo.SelectedIndexChanged += (s, e) =>
-    Console.WriteLine("Role: " + roleCombo.SelectedItem);
-this.Controls.Add(roleCombo);
-```
-
-## Quick start (Visual Basic)
-
-```vb
-Dim roleCombo As New NovaComboBox()
-roleCombo.Location = New Point(24, 92)
-roleCombo.Size = New Size(280, 34)
-roleCombo.Items.AddRange(New Object() {"Instructor", "Student", "Admin"})
-roleCombo.SelectedIndex = 0
-AddHandler roleCombo.SelectedIndexChanged,
-    Sub(s, e) Console.WriteLine("Role: " & roleCombo.SelectedItem)
-Me.Controls.Add(roleCombo)
-```
-
-## Working with custom objects
-
-Because it inherits from `ComboBox`, `DisplayMember`/`ValueMember` data binding works normally:
-
-**C#**
-
-```csharp
-var students = new List<Student>
-{
-    new Student { Id = 1, FullName = "Juan Dela Cruz" },
-    new Student { Id = 2, FullName = "Maria Santos" }
-};
-
-var studentCombo = new NovaComboBox();
-studentCombo.DataSource = students;
-studentCombo.DisplayMember = "FullName";
-studentCombo.ValueMember = "Id";
-
-int selectedId = (int)studentCombo.SelectedValue;
-```
-
-**Visual Basic**
-
-```vb
-Dim students As New List(Of Student) From {
-    New Student With {.Id = 1, .FullName = "Juan Dela Cruz"},
-    New Student With {.Id = 2, .FullName = "Maria Santos"}
-}
-
-Dim studentCombo As New NovaComboBox()
-studentCombo.DataSource = students
-studentCombo.DisplayMember = "FullName"
-studentCombo.ValueMember = "Id"
-
-Dim selectedId As Integer = CInt(studentCombo.SelectedValue)
-```
+An owner-drawn dropdown. The closed state is a rounded field with a chevron; opening
+it shows a themed popup list (max 8 rows visible, then the list scrolls).
 
 ## Properties
 
 | Property | Type | Default | Description |
 | --- | --- | --- | --- |
-| `CornerRadius` | `int` | `8` | Corner radius (0 = square) |
-| `FillColor` | `Color` | `NovaTheme.BackColor` | Closed-control and list-row background |
-| `BorderColor` | `Color` | `NovaTheme.BorderColor` | Border when unfocused |
-| `FocusBorderColor` | `Color` | `NovaTheme.Accent` | Border when focused/dropped down |
-| `ItemHoverColor` | `Color` | `#EEF0FC` | Row highlight under the pointer in the open list |
-| `ArrowColor` | `Color` | `NovaTheme.MutedColor` | Chevron color |
-| `ForeColor` | `Color` | `NovaTheme.TextColor` | Text color (inherited from `ComboBox`) |
+| `Items` | `List<object>` | empty | the item list (`AddItem`, `ClearItems`) |
+| `SelectedIndex` | `int` | `-1` | index of the selected item |
+| `SelectedItem` | `object` | `null` | the selected item itself |
+| `Placeholder` | `string` | `""` | hint shown when nothing is selected |
+| `CornerRadius` | `int` | `8` | corner radius in px |
 
-Everything from `ComboBox` is still available: `Items`, `SelectedItem`, `SelectedIndex`, `DataSource`, `Sorted`, `SelectedIndexChanged`, `TextChanged`, ...
+Event: `SelectedIndexChanged`.
 
-## Events
+## C#
 
-| Event | When it fires |
-| --- | --- |
-| `SelectedIndexChanged` | A different item is selected |
-| `DropDown` / `DropDownClosed` | The list opens/closes (face repaints automatically) |
-| `GotFocus` / `LostFocus` | Border switches to `FocusBorderColor` |
+```csharp
+var program = new NovaComboBox();
+program.Placeholder = "Select program...";
+program.SetBounds(24, 24, 260, 34);
+program.Items.Add("Cardio basics");
+program.Items.Add("Strength level 1");
+program.Items.Add("Strength level 2");
+program.Items.Add("Rehabilitation");
+
+program.SelectedIndexChanged += (s, e) =>
+{
+    string chosen = Convert.ToString(program.SelectedItem);
+    MessageBox.Show("Program: " + chosen);
+};
+```
+
+## VB.NET
+
+```vb
+Dim program As New NovaComboBox()
+program.Placeholder = "Select program..."
+program.SetBounds(24, 24, 260, 34)
+program.Items.Add("Cardio basics")
+program.Items.Add("Strength level 1")
+program.Items.Add("Strength level 2")
+program.Items.Add("Rehabilitation")
+
+AddHandler program.SelectedIndexChanged,
+    Sub(s, e) MessageBox.Show("Program: " & Convert.ToString(program.SelectedItem))
+```
 
 ## Notes
 
-- Best used with `DropDownStyle = DropDownList` (the default). Editable mode works, but the native edit box paints over the styled face, so visual polish is reduced.
-- Row height is `ItemHeight` (24 by default); increase it together with `Font` for larger text.
+- Keyboard: `Up`/`Down` change the selection, `Enter` opens/closes the dropdown,
+  `Esc` closes it.
+- The popup closes automatically when it loses focus (click outside).
+- `ClearItems()` also resets `SelectedIndex` to `-1`.

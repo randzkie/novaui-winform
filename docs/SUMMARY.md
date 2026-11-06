@@ -13,3 +13,7 @@
 * [NovaComboBox](controls/nova-combobox.md)
 * [NovaProgressBar](controls/nova-progressbar.md)
 * [NovaHtmlViewer](controls/nova-html-viewer.md)
+
+## Reference
+
+* [GitBook publishing guide](gitbook-publishing.md)

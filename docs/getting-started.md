@@ -1,94 +1,86 @@
+---
+title: Getting started
+description: Reference the DLL and build your first NovaUI window in C# or VB.NET.
+---
+
 # Getting started
 
-This page walks you through referencing NovaUI.WinForms and building your first window, in both **C#** and **Visual Basic**.
+## 1. Reference the DLL
 
-## 1. Add the library to your project
+Pick the build that matches your project:
 
-### Option A - compiled DLL (fastest)
+- .NET Framework 4.7.2 (or any 4.x) -> `NovaUI.WinForms/dist/net472/NovaUI.WinForms.dll`
+- .NET 8 Windows -> `NovaUI.WinForms/dist/net8.0-windows/NovaUI.WinForms.dll`
 
-1. Copy `NovaUI.WinForms/dist/net472/NovaUI.WinForms.dll` (for .NET Framework 4.7.2/4.8 projects) or `dist/net8.0-windows/NovaUI.WinForms.dll` (for .NET 8 projects) into a `libs` folder of your solution.
-2. Add the reference:
-   - **C# / VB in Visual Studio:** Solution Explorer > your project > **Add** > **Reference...** > **Browse...** > select the DLL.
-   - **C# project file:**
-     ```xml
-     <Reference Include="NovaUI.WinForms">
-       <HintPath>..\libs\NovaUI.WinForms.dll</HintPath>
-     </Reference>
-     ```
-   - **VB project file (.vbproj):**
-     ```xml
-     <Reference Include="NovaUI.WinForms">
-       <HintPath>..\libs\NovaUI.WinForms.dll</HintPath>
-     </Reference>
-     ```
+**Visual Studio:** right-click *References* (or *Dependencies*) -> *Add Reference...* ->
+*Browse* -> select the DLL.
 
-### Option B - project reference
-
-Add the `NovaUI.WinForms` project to your solution and reference it:
+**C# project file (.csproj):**
 
 ```xml
-<!-- C# (.csproj) or VB (.vbproj) - identical syntax -->
 <ItemGroup>
-  <ProjectReference Include="..\NovaUI.WinForms\NovaUI.WinForms.csproj" />
+  <Reference Include="NovaUI.WinForms">
+    <HintPath>libs\NovaUI.WinForms.dll</HintPath>
+  </Reference>
 </ItemGroup>
 ```
 
-## 2. Drop controls on a form
+**VB project file (.vbproj):** identical block - the XML is the same for both
+languages.
 
-After adding the reference, the **NovaUI** controls appear in the Toolbox automatically (right-click Toolbox > **Reset** if they do not show). Drag **NovaButton**, **NovaTextBox**, **NovaComboBox**, **NovaProgressBar**, **NovaHtmlViewer**, **NovaPanel** or **NovaLabel** onto the form and set their `Nova`-category properties in the Properties window.
+After the first build you can also right-click the Toolbox -> *Choose Items...* ->
+*Browse* and drop all Nova controls onto the designer.
 
-## 3. First window in C#
+## 2. First window (C#)
 
 ```csharp
 using System;
-using System.Drawing;
 using System.Windows.Forms;
 using NovaUI.WinForms;
 
-namespace DemoApp
+public class MainForm : Form
 {
-    public class MainForm : Form
+    public MainForm()
     {
-        public MainForm()
-        {
-            Text = "My first NovaUI window";
-            Size = new Size(560, 380);
-            BackColor = NovaTheme.BackColor;
+        Text = "My first Nova window";
+        Size = new System.Drawing.Size(480, 320);
+        BackColor = NovaTheme.Background;
 
-            var nameLabel = new NovaLabel();
-            nameLabel.Text = "Student name";
-            nameLabel.Location = new Point(24, 24);
+        var panel = new NovaPanel();
+        panel.SetBounds(24, 24, 400, 200);
 
-            var nameBox = new NovaTextBox();
-            nameBox.Placeholder = "Juan Dela Cruz";
-            nameBox.Location = new Point(24, 48);
-            nameBox.Size = new Size(280, 34);
+        var label = new NovaLabel();
+        label.Text = "Welcome to NovaUI";
+        label.AccentDot = true;
+        label.SetBounds(20, 20, 260, 28);
 
-            var courseCombo = new NovaComboBox();
-            courseCombo.Location = new Point(24, 92);
-            courseCombo.Size = new Size(280, 34);
-            courseCombo.Items.AddRange(new object[] { "Programming 101", "Data Structures", "Web Systems" });
-            courseCombo.SelectedIndex = 0;
+        var button = new NovaButton();
+        button.Text = "Say hello";
+        button.SetBounds(20, 60, 120, 36);
+        button.Click += (s, e) =>
+            MessageBox.Show("Hello from " + label.Text);
 
-            var saveButton = new NovaButton();
-            saveButton.Text = "Enroll";
-            saveButton.Location = new Point(24, 140);
-            saveButton.Click += (s, e) =>
-                MessageBox.Show("Enrolled " + nameBox.Text + " in " + courseCombo.SelectedItem);
+        panel.Controls.Add(label);
+        panel.Controls.Add(button);
+        Controls.Add(panel);
+    }
+}
 
-            Controls.Add(nameLabel);
-            Controls.Add(nameBox);
-            Controls.Add(courseCombo);
-            Controls.Add(saveButton);
-        }
+static class Program
+{
+    [STAThread]
+    static void Main()
+    {
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new MainForm());
     }
 }
 ```
 
-## 4. First window in Visual Basic
+## 3. First window (VB.NET)
 
 ```vb
-Imports System.Drawing
 Imports System.Windows.Forms
 Imports NovaUI.WinForms
 
@@ -96,64 +88,49 @@ Public Class MainForm
     Inherits Form
 
     Public Sub New()
-        Text = "My first NovaUI window"
-        Size = New Size(560, 380)
-        BackColor = NovaTheme.BackColor
+        Text = "My first Nova window"
+        Size = New Drawing.Size(480, 320)
+        BackColor = NovaTheme.Background
 
-        Dim nameLabel As New NovaLabel()
-        nameLabel.Text = "Student name"
-        nameLabel.Location = New Point(24, 24)
+        Dim panel As New NovaPanel()
+        panel.SetBounds(24, 24, 400, 200)
 
-        Dim nameBox As New NovaTextBox()
-        nameBox.Placeholder = "Juan Dela Cruz"
-        nameBox.Location = New Point(24, 48)
-        nameBox.Size = New Size(280, 34)
+        Dim label As New NovaLabel()
+        label.Text = "Welcome to NovaUI"
+        label.AccentDot = True
+        label.SetBounds(20, 20, 260, 28)
 
-        Dim courseCombo As New NovaComboBox()
-        courseCombo.Location = New Point(24, 92)
-        courseCombo.Size = New Size(280, 34)
-        courseCombo.Items.AddRange(New Object() {"Programming 101", "Data Structures", "Web Systems"})
-        courseCombo.SelectedIndex = 0
+        Dim button As New NovaButton()
+        button.Text = "Say hello"
+        button.SetBounds(20, 60, 120, 36)
+        AddHandler button.Click, Sub(s, e) MessageBox.Show("Hello from " & label.Text)
 
-        Dim saveButton As New NovaButton()
-        saveButton.Text = "Enroll"
-        saveButton.Location = New Point(24, 140)
-        AddHandler saveButton.Click,
-            Sub(s, e) MessageBox.Show("Enrolled " & nameBox.Text & " in " & courseCombo.SelectedItem)
-
-        Controls.Add(nameLabel)
-        Controls.Add(nameBox)
-        Controls.Add(courseCombo)
-        Controls.Add(saveButton)
+        panel.Controls.Add(label)
+        panel.Controls.Add(button)
+        Controls.Add(panel)
     End Sub
 End Class
+
+Module Program
+    <STAThread>
+    Sub Main()
+        Application.EnableVisualStyles()
+        Application.Run(New MainForm())
+    End Sub
+End Module
 ```
 
-## 5. Program entry point
+## 4. Design-time tip
 
-Make sure visual styles are enabled so NovaUI controls render with crisp fonts:
+Nova controls are code-first but fully usable in the Visual Studio designer: add them
+via *Choose Toolbox Items*, set `CornerRadius`, `Placeholder`, `Style` etc. in the
+property grid (look for the **Nova** category).
 
-**C#**
-
-```csharp
-[STAThread]
-static void Main()
-{
-    Application.EnableVisualStyles();
-    Application.SetCompatibleTextRenderingDefault(false);
-    Application.Run(new MainForm());
-}
-```
-
-**Visual Basic**
-
-```vb
-' In a module or MyProject settings (VB enables visual styles by default)
-Application.EnableVisualStyles()
-Application.Run(New MainForm())
-```
+> [!TIP]
+> Set `BackColor = NovaTheme.Background` on your forms so the page color follows the
+> active theme automatically.
 
 ## Next steps
 
-- Recolor everything at once in [Theming](theming.md).
-- Embed printable HTML documents (forms, reports) with [NovaHtmlViewer](controls/nova-html-viewer.md).
+- [Theming](theming.md) - the full palette and dark mode
+- [NovaHtmlViewer](controls/nova-html-viewer.md) - HTML forms with parameter injection

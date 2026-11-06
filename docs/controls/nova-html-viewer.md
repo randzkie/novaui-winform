@@ -1,222 +1,234 @@
+---
+title: NovaHtmlViewer
+description: HTML viewer with template parameter injection, custom link bar and print support.
+---
+
 # NovaHtmlViewer
 
-An HTML document viewer - think "PDF viewer, but for HTML pages". It hosts the in-box Windows `WebBrowser` engine and adds what a document viewer needs:
+An HTML viewer built on the built-in WebBrowser engine (IE/Trident). Designed for
+**printable documents and reports**: load an HTML file (A4 layouts work great),
+inject runtime values into it, add a toolbar of custom links, and print it.
 
-- **Load HTML from a string, a local file, or a URL**
-- **A bar of custom links** injected into the document (top or bottom), configurable from C#/VB
-- **Click interception** - run your own code on link clicks, cancel them, or open them in the user's default browser
-- **Print / print preview** for printable documents (A4 forms, reports)
+## Loading content
 
-- **Base class:** `System.Windows.Forms.UserControl`
-- **Namespace:** `NovaUI.WinForms`
-- **Default property / event:** `Html` / `LinkClicked`
+| Method | Behavior |
+| --- | --- |
+| `LoadFile(path)` | reads an HTML file, applies the injection pipeline, renders it |
+| `LoadHtml(html)` | renders an HTML string through the same pipeline |
+| `LoadUrl(url)` | navigates to a URL, appending `Parameters` as a query string |
+| `Navigate(url)` | navigates exactly where told - no injection |
+| `RefreshDocument()` | re-loads the current source with the current parameters |
 
-> **Engine note:** the viewer uses the in-box `WebBrowser` engine (Trident). It is available on both .NET Framework 4.7.2 and .NET 8 and needs no extra packages. Static/styled documents (forms, reports, help pages) render perfectly; very modern CSS/JS is outside its scope.
+Property `Html` returns the raw (untransformed) HTML of the last source.
 
-## Quick start (C#)
+When loading a **file**, the viewer automatically inserts `<base href="...">` so
+relative images and CSS in that file keep working.
+
+# Injecting parameters into the HTML
+
+The core feature: write your HTML file with **tokens**, and NovaHtmlViewer replaces
+them with runtime values **before** the browser engine renders the document.
+
+## Step 1 - put tokens in the HTML file
+
+```html
+<!-- form.html -->
+<h1>{{ClinicName}}</h1>
+<table>
+  <tr><th>Patient</th><td>{{PatientName}}</td></tr>
+  <tr><th>Visit date</th><td>{{VisitDate}}</td></tr>
+  <tr><th>Blood pressure</th><td>{{BloodPressure}}</td></tr>
+</table>
+```
+
+## Step 2 - fill the values and load (C#)
 
 ```csharp
 var viewer = new NovaHtmlViewer();
-viewer.Location = new Point(24, 60);
-viewer.Size = new Size(800, 460);
-viewer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-viewer.Html = "<h1>Course Progress Assessment Report</h1><p>Period: 1st Semester.</p>";
-this.Controls.Add(viewer);
+viewer.Dock = DockStyle.Fill;
+Controls.Add(viewer);
+
+viewer.Parameters["ClinicName"] = "Nova Wellness Clinic";
+viewer.Parameters["PatientName"] = "Juan Dela Cruz";
+viewer.Parameters["VisitDate"] = DateTime.Today.ToString("yyyy-MM-dd");
+viewer.Parameters["BloodPressure"] = "120/80";
+
+viewer.LoadFile("form.html");   // tokens are replaced just before rendering
 ```
 
-## Quick start (Visual Basic)
+## Step 2 - fill the values and load (VB.NET)
 
 ```vb
 Dim viewer As New NovaHtmlViewer()
-viewer.Location = New Point(24, 60)
-viewer.Size = New Size(800, 460)
-viewer.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
-viewer.Html = "<h1>Course Progress Assessment Report</h1><p>Period: 1st Semester.</p>"
-Me.Controls.Add(viewer)
+viewer.Dock = DockStyle.Fill
+Controls.Add(viewer)
+
+viewer.Parameters("ClinicName") = "Nova Wellness Clinic"
+viewer.Parameters("PatientName") = "Juan Dela Cruz"
+viewer.Parameters("VisitDate") = Date.Today.ToString("yyyy-MM-dd")
+viewer.Parameters("BloodPressure") = "120/80"
+
+viewer.LoadFile("form.html")   ' tokens are replaced just before rendering
 ```
 
-## Loading content: string, file, or URL
+## Changing values later
 
-**C#**
+Call `RefreshDocument()` after changing parameters - it re-runs the whole
+injection pipeline on the current source:
 
 ```csharp
-viewer.Html = htmlString;                     // 1. from a string
-viewer.LoadFile(@"C:\forms\cpar-form.html");  // 2. from a local file
-viewer.LoadUrl("https://example.org/report"); // 3. from the web
-viewer.RefreshDocument();                     // re-render after changing links
+viewer.Parameters["PatientName"] = "Maria Santos";
+viewer.RefreshDocument();
 ```
-
-**Visual Basic**
 
 ```vb
-viewer.Html = htmlString                      ' 1. from a string
-viewer.LoadFile("C:\forms\cpar-form.html")    ' 2. from a local file
-viewer.LoadUrl("https://example.org/report")  ' 3. from the web
-viewer.RefreshDocument()                      ' re-render after changing links
+viewer.Parameters("PatientName") = "Maria Santos"
+viewer.RefreshDocument()
 ```
 
-## Custom links
+> [!TIP]
+> `RefreshDocument()` re-reads the file from disk too - if you edit the HTML file
+> while the app runs, calling it picks up your edits.
 
-The **custom links** feature renders a styled bar of links inside the viewed document. Links live in the `CustomLinks` collection and appear wherever `LinksPosition` points (top by default). Add them before assigning `Html`, or add them later and call `RefreshDocument()`.
+## Custom token delimiters
 
-**C#**
+Default tokens are `{{key}}`. Change `TokenPrefix` / `TokenSuffix` for other
+styles, e.g. `%key%`:
 
 ```csharp
-viewer.LinksPosition = NovaLinksBarPosition.Top;   // None / Top / Bottom
-viewer.LinksBarBackColor = NovaTheme.SurfaceColor;
-viewer.LinkColor = NovaTheme.Accent;
-viewer.LinkHoverColor = NovaTheme.AccentHover;
-
-// Simple overload:
-viewer.AddLink("New Form", "https://example.org/new");
-
-// Full overload: text, url, tooltip, open-in-default-browser:
-viewer.AddLink("Records", "https://example.org/records", "Open the records list", true);
-viewer.AddLink("Help", "https://example.org/help");
-
-// Remove all links:
-// viewer.ClearLinks();
+viewer.TokenPrefix = "%";
+viewer.TokenSuffix = "%";
+viewer.Parameters["PatientName"] = "Juan Dela Cruz";
+viewer.LoadFile("form.html");    // %PatientName% is replaced
 ```
-
-**Visual Basic**
 
 ```vb
-viewer.LinksPosition = NovaLinksBarPosition.Top   ' None / Top / Bottom
-viewer.LinksBarBackColor = NovaTheme.SurfaceColor
-viewer.LinkColor = NovaTheme.Accent
-viewer.LinkHoverColor = NovaTheme.AccentHover
-
-' Simple overload:
-viewer.AddLink("New Form", "https://example.org/new")
-
-' Full overload: text, url, tooltip, open-in-default-browser:
-viewer.AddLink("Records", "https://example.org/records", "Open the records list", True)
-viewer.AddLink("Help", "https://example.org/help")
-
-' Remove all links:
-' viewer.ClearLinks()
+viewer.TokenPrefix = "%"
+viewer.TokenSuffix = "%"
+viewer.Parameters("PatientName") = "Juan Dela Cruz"
+viewer.LoadFile("form.html")     ' %PatientName% is replaced
 ```
 
-### Intercepting link clicks
+`KeepUnknownTokens = true` (default) leaves `{{unfilled}}` tokens visible;
+set it to `false` to strip any token that has no matching parameter.
 
-The `LinkClicked` event fires for every custom link click. It is **cancelable** and lets you reroute the click:
+## Injecting CSS / script into the head
 
-**C#**
+`HeadInjection` inserts raw HTML just before `</head>` on every render - useful
+for print styles, scripts or fonts:
 
 ```csharp
-viewer.LinkClicked += (s, e) =>
+viewer.HeadInjection =
+    "<style>body{font-family:'Segoe UI'} h1{color:#4F6BFF}</style>";
+viewer.LoadFile("form.html");
+```
+
+```vb
+viewer.HeadInjection =
+    "<style>body{font-family:'Segoe UI'} h1{color:#4F6BFF}</style>"
+viewer.LoadFile("form.html")
+```
+
+## Full control: the HtmlTransforming event
+
+`HtmlTransforming` fires with the **raw HTML** before tokens are applied. Rewrite
+`e.Html` however you like (or set `e.Cancel = true` to skip the load). Example:
+inject a JSON object consumed by the page's JavaScript:
+
+```csharp
+viewer.HtmlTransforming += (s, e) =>
 {
-    if (e.Link.Text == "Records")
-    {
-        e.Cancel = true;                      // keep the viewer where it is
-        OpenRecordsWindow();                  // ...and do something in the app
-    }
-    else if (e.Link.OpenExternally)
-    {
-        e.OpenExternally = true;              // default browser handles it
-    }
+    string json = "{\"patient\":\"" + name + "\",\"bp\":\"" + bp + "\"}";
+    e.Html = e.Html.Replace("/*__DATA__*/", "window.__DATA__ = " + json + ";");
 };
 ```
 
-**Visual Basic**
-
 ```vb
-AddHandler viewer.LinkClicked,
+AddHandler viewer.HtmlTransforming,
     Sub(s, e)
-        If e.Link.Text = "Records" Then
-            e.Cancel = True                   ' keep the viewer where it is
-            OpenRecordsWindow()               ' ...and do something in the app
-        ElseIf e.Link.OpenExternally Then
-            e.OpenExternally = True           ' default browser handles it
-        End If
+        Dim json As String = "{""patient"":""" & name & """,""bp"":""" & bp & """}"
+        e.Html = e.Html.Replace("/*__DATA__*/", "window.__DATA__ = " & json & ";")
     End Sub
 ```
 
-With designer-placed controls in VB you can use `Handles`:
+Pipeline order per render:
 
-```vb
-Private Sub Viewer1_LinkClicked(sender As Object, e As NovaHtmlLinkEventArgs) Handles Viewer1.LinkClicked
-    Log("Link clicked: " & e.Url.ToString())
-End Sub
-```
+1. `HtmlTransforming` event (raw template)
+2. automatic `<base href>` for file loads
+3. `HeadInjection`
+4. `Parameters` token replacement
 
-### Open everything externally
+## URLs and parameters
 
-Set one property to turn the viewer into a "sandbox": every http/https click opens in the user's default browser instead of navigating inside the viewer.
-
-**C#** `viewer.OpenLinksExternally = true;`
-**Visual Basic** `viewer.OpenLinksExternally = True`
-
-## Printing printable documents
-
-Documents designed for paper (A4 forms with `@media print` CSS, like assessment-report templates) print correctly:
-
-**C#**
+`LoadUrl` appends the parameter dictionary as a query string instead of doing
+token replacement (the viewer cannot rewrite a remote page):
 
 ```csharp
-printButton.Click += (s, e) => viewer.ShowPrintDialog();      // system print dialog
-previewButton.Click += (s, e) => viewer.ShowPrintPreview();   // print preview window
+viewer.Parameters["PatientName"] = "Juan";
+viewer.LoadUrl("https://example.com/report");
+// -> https://example.com/report?PatientName=Juan
 ```
 
-**Visual Basic**
+## Testing your tokens in isolation
+
+The static helper is exposed so you can dry-run the replacement (e.g. in unit
+tests):
+
+```csharp
+string html = NovaHtmlViewer.ApplyTokens(
+    "<b>{{Name}}</b>",
+    new Dictionary<string, string> { { "Name", "Juan" } },
+    "{{", "}}", keepUnknown: true);
+// -> "<b>Juan</b>"
+```
+
+# Custom link bar
+
+Add clickable links above or below the document:
+
+```csharp
+viewer.LinksPosition = NovaLinksPosition.Top;
+viewer.AddLink("Home", "about:blank", "Back to start", false);
+viewer.AddLink("Manual", "https://example.com/manual", "Opens in browser", true);
+
+viewer.LinkClicked += (s, e) =>
+{
+    if (e.Url.StartsWith("https://audit-log"))
+        e.Cancel = true;          // block this one
+};
+```
 
 ```vb
-AddHandler printButton.Click, Sub(s, e) viewer.ShowPrintDialog()      ' system print dialog
-AddHandler previewButton.Click, Sub(s, e) viewer.ShowPrintPreview()   ' print preview window
+viewer.LinksPosition = NovaLinksPosition.Top
+viewer.AddLink("Home", "about:blank", "Back to start", False)
+viewer.AddLink("Manual", "https://example.com/manual", "Opens in browser", True)
 ```
 
-## Properties
+- `openExternally: true` opens the URL in the system browser (default browser)
+  instead of the embedded engine.
+- `LinkColor` / `LinkHoverColor` theme the bar; `ClearLinks()` empties it.
+- `LinksPosition` = `None`, `Top` or `Bottom` (`None` hides the bar).
 
-| Property | Type | Default | Description |
-| --- | --- | --- | --- |
-| `Html` | `string` | `""` | HTML string currently displayed (assigning re-renders) |
-| `CustomLinks` | `List&lt;NovaHtmlLink&gt;` | empty | The custom links collection |
-| `LinksPosition` | `NovaLinksBarPosition` | `Top` | Where the links bar renders: `None`, `Top`, `Bottom` |
-| `LinksBarBackColor` | `Color` | `NovaTheme.SurfaceColor` | Links bar background |
-| `LinkColor` | `Color` | `NovaTheme.Accent` | Custom link color |
-| `LinkHoverColor` | `Color` | `NovaTheme.AccentHover` | Custom link hover color |
-| `OpenLinksExternally` | `bool` | `false` | Open all http/https navigations in the default browser |
-| `ShowBorder` | `bool` | `true` | 1px frame around the viewer |
-| `BorderColor` | `Color` | `NovaTheme.BorderColor` | Frame color |
-| `SuppressScriptErrors` | `bool` | `true` | Hide engine script-error dialogs |
-| `IsLoading` | `bool` | - | True while a document is loading (read-only) |
-| `InnerBrowser` | `WebBrowser` | - | Underlying engine for advanced use (read-only) |
+# Printing
 
-## Methods
+```csharp
+viewer.ShowPrintDialog();      // system print dialog
+viewer.ShowPrintPreview();     // print preview window
+```
 
-| Method | Description |
+```vb
+viewer.ShowPrintDialog()
+viewer.ShowPrintPreview()
+```
+
+Use CSS `@media print` in your HTML to hide toolbars and margins when printing -
+see `TestApp/sample.html` for a complete A4 example.
+
+# Other members
+
+| Member | Description |
 | --- | --- |
-| `LoadFile(string path)` | Load an HTML document from a local file |
-| `LoadUrl(string urlString)` | Load from a web or `file://` URL |
-| `Navigate(Uri uri)` | Navigate to a `Uri` |
-| `RefreshDocument()` | Re-render the current HTML with current links/colors |
-| `AddLink(string text, string url)` | Add a custom link |
-| `AddLink(string text, string url, string tooltip, bool openExternally)` | Add a custom link with options |
-| `ClearLinks()` | Remove all custom links |
-| `ShowPrintDialog()` | Open the system print dialog |
-| `ShowPrintPreview()` | Open print preview |
-| `GoBack()` / `GoForward()` / `Stop()` / `Reload()` | Navigation commands |
-
-## Events
-
-| Event | Args | Description |
-| --- | --- | --- |
-| `LinkClicked` | `NovaHtmlLinkEventArgs` (`Link`, `Url`, `Cancel`, `OpenExternally`) | A custom link was clicked - cancel or reroute |
-| `DocumentLoaded` | `WebBrowserDocumentCompletedEventArgs` | The document finished loading |
-| `Navigated` | `WebBrowserNavigatedEventArgs` | The engine navigated to a URL |
-
-## The NovaHtmlLink class
-
-| Property | Type | Description |
-| --- | --- | --- |
-| `Text` | `string` | Visible caption (falls back to the URL when empty) |
-| `Url` | `string` | Absolute target URL (`http/https/mailto/...`) |
-| `Tooltip` | `string` | Optional HTML `title` tooltip |
-| `OpenExternally` | `bool` | Always open this link in the default browser |
-
-## Notes and tips
-
-- Links with relative URLs cannot be matched reliably inside string-rendered documents - use absolute URLs in `NovaHtmlLink.Url`.
-- The frame is a plain rectangle by design: the ActiveX engine does not clip to rounded corners (classic "airspace" behavior).
-- `IsWebBrowserContextMenuEnabled` is disabled by default so users get a clean document surface; re-enable via `viewer.InnerBrowser.IsWebBrowserContextMenuEnabled = true` if you need it.
-- For documents generated at runtime, build the string with your own template and assign `Html` - the viewer only injects its links bar, everything else is yours.
+| `DocumentCompleted` | passthrough event of the inner WebBrowser |
+| `ObjectForScripting` | expose a .NET object to the page's JavaScript |
+| `ScriptErrorsSuppressed` | hide script error dialogs (default `true`) |
+| `Url`, `IsBusy` | current document URL / navigation state |

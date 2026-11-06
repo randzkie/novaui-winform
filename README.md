@@ -1,59 +1,82 @@
 # NovaUI.WinForms
 
-Clean-room WinForms UI library for our own projects - flat GDI+ controls inspired by the layout conventions studied in the reverse-engineering exercise, written from scratch with zero third-party dependencies.
-
-**Targets:** .NET Framework **4.7.2** / 4.8 and **.NET 8** (multi-targeted from identical C# 7.3 sources, so everything works on 4.7.2).
+Clean-room WinForms UI library - custom-drawn controls, dark/light theming, and an
+HTML viewer with template-parameter injection. Multi-target: **net472** + **net8.0-windows**,
+single code base, C# 7.3, zero third-party dependencies.
 
 ## Controls (7)
 
-| Control | Base | Highlights |
-| --- | --- | --- |
-| `NovaButton` | Control | Flat rounded button, filled/outline/danger looks, hover+press states |
-| `NovaPanel` | Panel | Rounded card with optional title/border, child clipping via Region |
-| `NovaTextBox` | UserControl | Rounded text box, placeholder, focus accent, native editing behavior |
-| `NovaLabel` | Control | Crisp text label, optional accent dot, AutoSize support |
-| `NovaComboBox` | ComboBox | Owner-drawn flat dropdown, rounded border, custom chevron and row highlight |
-| `NovaProgressBar` | Control | Rounded bar, marquee mode, Percent/Value captions, ValueChanged event |
-| `NovaHtmlViewer` | UserControl | HTML viewer ("PDF viewer, but for HTML"): string/file/URL content, **custom links bar**, click interception, open-externally, print + print preview |
+| Control | Highlights |
+| --- | --- |
+| `NovaButton` | rounded, Filled/Outline, per-button accent, `PerformClick()` |
+| `NovaPanel` | rounded card container with border |
+| `NovaTextBox` | rounded input, placeholder, password/readonly modes |
+| `NovaLabel` | label with accent dot |
+| `NovaComboBox` | owner-drawn dropdown with themed popup |
+| `NovaProgressBar` | determinate + marquee modes, percent text |
+| `NovaHtmlViewer` | HTML viewer with **parameter injection** (`{{token}}`), custom link bar, print dialog/preview |
 
-Supporting types: `NovaTheme` (shared palette + dark mode), `NovaHtmlLink`, `NovaHtmlLinkEventArgs`, `NovaLinksBarPosition`, `NovaProgressTextDisplay`.
+## Parameter injection (new in 1.3)
 
-## Build
-
-```bash
-dotnet build NovaUI.WinForms/NovaUI.WinForms.csproj -c Release
-dotnet build TestApp/TestApp.csproj -c Release
+```csharp
+viewer.Parameters["PatientName"] = "Juan Dela Cruz";
+viewer.Parameters["VisitDate"] = "2026-11-06";
+viewer.LoadFile("form.html");      // replaces {{PatientName}}, {{VisitDate}} ...
 ```
 
-Produces both `net472` and `net8.0-windows` DLLs. On Linux, the net472 build uses the `Microsoft.NETFramework.ReferenceAssemblies` package (already referenced in the csproj).
+- Tokens: `TokenPrefix` / `TokenSuffix` (default `{{` `}}`), case-insensitive
+- `HeadInjection` - inject CSS/JS before `</head>`
+- `HtmlTransforming` event - rewrite raw HTML, inject JSON, cancel the load
+- `LoadUrl` - appends parameters as a query string
+- `RefreshDocument()` - re-render after changing parameters
 
-`TestApp` is a tabbed demo form exercising every control, including the HTML viewer with custom links and print buttons.
+Full guide: `docs/controls/nova-html-viewer.md`.
 
-## Prebuilt DLLs
+## GitBook-ready documentation
 
-- `NovaUI.WinForms/dist/net472/NovaUI.WinForms.dll` - reference this from .NET Framework 4.7.2/4.8 projects
-- `NovaUI.WinForms/dist/net8.0-windows/NovaUI.WinForms.dll` - reference this from .NET 8 projects
+`docs/` is a complete GitBook space:
 
-## Documentation
+```
+docs/
+├── README.md               # home page (+ banner from assets/nova-banner.svg)
+├── SUMMARY.md              # GitBook table of contents
+├── getting-started.md      # C# + VB quick start
+├── theming.md              # NovaTheme palette & dark mode
+├── gitbook-publishing.md   # how to publish & customize pages on GitBook
+├── assets/nova-banner.svg
+└── controls/               # one page per control, C# + VB examples
+```
 
-Full per-control documentation with **C# and Visual Basic examples**, GitBook-ready:
+Every page carries GitBook front matter (`title`, `description`). `.gitbook.yaml`
+at the repo root points GitBook to `docs/` when you Git-Sync the whole repo.
+See `docs/gitbook-publishing.md` for step-by-step publishing instructions.
 
-- [`docs/README.md`](docs/README.md) - home + control catalog
-- [`docs/SUMMARY.md`](docs/SUMMARY.md) - GitBook table of contents (drop `docs/` into GitBook as-is)
-- [`docs/getting-started.md`](docs/getting-started.md) - referencing the DLL, first window (C# + VB)
-- [`docs/theming.md`](docs/theming.md) - NovaTheme palette, dark mode
-- `docs/controls/*.md` - one page per control: quick start (C# + VB), properties, events, methods, notes
+## Repository layout
 
-## Verification (RE toolkit)
+```
+winforms-ui-project/
+├── .gitbook.yaml           # GitBook config (root: ./docs)
+├── NovaUI.WinForms/        # the library (Core/, Controls/, dist/)
+├── TestApp/                # 4-tab demo app + sample.html (token template)
+├── docs/                   # GitBook-ready docs
+└── tools/analyze_guna.py   # dnfile metadata verifier
+```
 
-`tools/analyze_guna.py` (dnfile) against the built net472 DLL:
+## Build from source
 
-- TFM attribute: `.NETFramework,Version=v4.7.2`
-- 15 types, 257 methods, 97 fields, 77 properties
-- 7 controls with bases: Control x3, Panel, ComboBox, UserControl x2
-- References only in-box assemblies: mscorlib, System, System.Drawing, System.Windows.Forms
+```bash
+dotnet build NovaUI.WinForms/NovaUI.WinForms.csproj -c Release   # net472 + net8.0-windows
+dotnet build TestApp/TestApp.csproj -c Release                   # demo app
+```
 
-## Notes
+Requirements: .NET SDK 8 (`EnableWindowsTargeting=true` already set). Windows is
+needed to *run* the TestApp.
 
-- Clean-room: no target code was copied; the library is written from a behavioral spec and verified by metadata analysis only.
-- `LangVersion` is pinned to C# 7.3 so net472 and net8 compile from identical sources.
+## Verified (dnfile metadata)
+
+| Target | TFM | Types | Methods | Properties |
+| --- | --- | --- | --- | --- |
+| net472 | `.NETFramework,Version=v4.7.2` | 17 | 243 | 72 |
+| net8.0-windows | `.NETCoreApp,Version=v8.0` | 17 | 243 | 72 |
+
+Build result: 0 errors / 0 warnings on both targets.
